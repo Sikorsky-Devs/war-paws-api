@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  SHELTER
+  VOLUNTEER
+}
+
+enum ShelterType {
+  CLINIC
+  SHELTER
+  KENNEL
+  OTHER
+}
+
+model User {
+  id                String          @id @default(uuid())
+  email             String          @unique
+  firstName         String?         @map("first_name")
+  middleName        String?         @map("middle_name")
+  lastName          String?         @map("last_name")
+  name              String?         @map("name")
+  accountType       AccountType     @default(VOLUNTEER) @map("account_type")
+  shelterType       ShelterType?    @map("shelter_type")
+  address           String?
+  description       String?
+  password          String
+  avatarLink        String?         @map("avatar_link")
+  donationLink      String?         @map("donation_link")
+  contacts          Contact[]
+  volunteerComments Comment[]       @relation("VolunteerComments")
+  shelterComments   Comment[]       @relation("ShelterComments")
+  volunteerMessages Message[]       @relation("VolunteerMessages")
+  shelterMessages   Message[]       @relation("ShelterMessages")
+  posts             Post[]
+  pets              Pet[]
+  saves             Save[]
+  searchRequests    SearchRequest[]
+
+  @@map("users")
+}
+
+enum ContactType {
+  PHONE
+  EMAIL
+  VIBER
+  TELEGRAM
+  WHATSAPP
+  FACEBOOK
+  OTHER
+}
+
+model Contact {
+  id      String      @id @default(uuid())
+  userId  String      @map("user_id")
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type    ContactType @map("type")
+  content String      @map("content")
+
+  @@map("contacts")
+}
+
+model Comment {
+  volunteerId String   @map("user_id")
+  volunteer   User     @relation("VolunteerComments", fields: [volunteerId], references: [id], onDelete: Cascade)
+  shelterId   String   @map("shelter_id")
+  shelter     User     @relation("ShelterComments", fields: [shelterId], references: [id], onDelete: Cascade)
+  stars       Int      @default(0)
+  content     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@id([volunteerId, shelterId])
+  @@map("comments")
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  volunteerId String   @map("volunteer_id")
+  volunteer   User     @relation("VolunteerMessages", fields: [volunteerId], references: [id], onDelete: Cascade)
+  shelterId   String   @map("shelter_id")
+  shelter     User     @relation("ShelterMessages", fields: [shelterId], references: [id], onDelete: Cascade)
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("messages")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("posts")
+}
+
+enum PetType {
+  DOG
+  CAT
+  RODENT
+  BIRD
+  FISH
+  DOMESTIC
+  EXOTIC
+  OTHER
+}
+
+enum HealthStatus {
+  HEALTHY
+  SICK
+  INJURED
+  UNDER_TREATMENT
+  DISABLED
+  CRITICAL
+  UNKNOWN
+}
+
+model Pet {
+  id          String        @id @default(uuid())
+  shelterId   String        @map("shelter_id")
+  shelter     User          @relation(fields: [shelterId], references: [id], onDelete: Cascade)
+  isApproved  Boolean       @default(false) @map("is_approved")
+  heathStatus HealthStatus? @map("health_status")
+  type        PetType
+  name        String?
+  age         Int?
+  breed       String?
+  address     String?
+  description String?
+  imageLink   String?       @map("image_link")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  saves       Save[]
+
+  @@map("pets")
+}
+
+model Save {
+  volunteerId String   @map("volunteer_id")
+  volunteer   User     @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  petId       String   @map("pet_id")
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@id([volunteerId, petId])
+  @@map("saves")
+}
+
+model SearchRequest {
+  id           String        @id @default(uuid())
+  volunteerId  String        @map("volunteer_id")
+  volunteer    User          @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  petType      PetType?      @map("pet_type")
+  ageFrom      Int?          @map("age_from")
+  ageTo        Int?          @map("age_to")
+  address      String?
+  breed        String?
+  healthStatus HealthStatus? @map("health_status")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@map("search_requests")
+}
