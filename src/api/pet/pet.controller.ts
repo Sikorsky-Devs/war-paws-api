@@ -2,6 +2,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -53,5 +54,11 @@ export class PetController {
   @Get()
   getMany(@Query() dto: PetQueriesDto) {
     return this.petService.getMany(dto);
+  }
+
+  @Delete('/:id')
+  @UseGuards(AuthGuard(AccountType.SHELTER))
+  remove(@Param('id') id: string) {
+    return this.petService.remove(id);
   }
 }
