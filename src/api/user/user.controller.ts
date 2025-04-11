@@ -28,6 +28,11 @@ export class UserController {
     return this.userService.getById(id);
   }
 
+  @Get('/:id/contacts')
+  getUserContacts(@Param('id') id: string) {
+    return this.userService.getUserContacts(id);
+  }
+
   @Patch('/avatars/upload')
   @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('file'))
