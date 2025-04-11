@@ -105,4 +105,12 @@ export class PetService {
 
     return { top, common };
   }
+
+  async remove(id: string) {
+    const pet = await this.prisma.pet.findFirst({ where: { id } });
+    if (!pet) {
+      throw new EntityNotFoundException('Pet', 'id');
+    }
+    return this.prisma.pet.delete({ where: { id } });
+  }
 }
