@@ -49,6 +49,10 @@ export class UserService {
     };
   }
 
+  getUserContacts(userId: string) {
+    return this.prisma.contact.findMany({ where: { userId } });
+  }
+
   async updateAvatar(file: Express.Multer.File, userId: string) {
     const link = this.fileService.uploadFile(file);
     const user = await this.prisma.user.findFirst({ where: { id: userId } });
