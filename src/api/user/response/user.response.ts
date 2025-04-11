@@ -13,4 +13,5 @@ export class UserResponse {
   description: string;
   donationLink: string;
   avatarLink: string;
+  stars: number;
 }

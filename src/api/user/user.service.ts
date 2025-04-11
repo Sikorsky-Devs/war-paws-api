@@ -33,12 +33,20 @@ export class UserService {
         description: true,
         donationLink: true,
         avatarLink: true,
+        shelterComments: true,
       },
     });
     if (!user) {
       throw new EntityNotFoundException('User', 'id');
     }
-    return user;
+    const avg =
+      user.shelterComments.reduce((acc, comment) => acc + comment.stars, 0) /
+      user.shelterComments.length;
+    delete user.shelterComments;
+    return {
+      ...user,
+      stars: Math.round(avg * 10) / 10,
+    };
   }
 
   async updateAvatar(file: Express.Multer.File, userId: string) {
