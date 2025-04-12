@@ -61,6 +61,7 @@ export class PetService {
     const pets = await this.prisma.pet.findMany({
       where: {
         ...search,
+        shelterId: dto.shelterId,
         type: dto.type,
         heathStatus: dto.healthStatus,
         age: {

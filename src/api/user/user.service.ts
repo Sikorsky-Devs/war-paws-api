@@ -102,19 +102,6 @@ export class UserService {
     });
   }
 
-  // TODO: Use this method if you need to get all volunteers or shelters with filtering
-  // async getMany() {
-  //   const users = await this.prisma.user.findMany({});
-  //   const result = [];
-  //   for (const user of users) {
-  //     if (user.role !== Role.ADMIN) {
-  //       delete user.password;
-  //       result.push(user);
-  //     }
-  //   }
-  //   return result;
-  // }
-
   async deleteById(userId: string) {
     const user = await this.prisma.user.delete({
       where: { id: userId },

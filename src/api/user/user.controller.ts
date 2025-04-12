@@ -15,7 +15,6 @@ import { AuthGuard } from '../auth/guard/auth.guard';
 import { UserUpdateDto } from './dto/user-update.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request } from 'express';
 
 @ApiTags('User')
 @Controller('/users')
@@ -45,12 +44,6 @@ export class UserController {
   update(@Body() body: UserUpdateDto, @Param('id') id: string) {
     return this.userService.update(body, id);
   }
-
-  // @Get()
-  // @UseGuards(AuthGuard())
-  // getMany() {
-  //   return this.userService.getMany();
-  // }
 
   @Delete('/:id')
   @UseGuards(AuthGuard())
