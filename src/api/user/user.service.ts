@@ -3,7 +3,7 @@ import { FileService } from '../../file/file.service';
 import { UserUpdateDto } from './dto/user-update.dto';
 import * as bcrypt from 'bcryptjs';
 import { PasswordIsNotValidException } from '../../utils/exception/password-is-not-valid.exception';
-import { Prisma } from '@prisma/client';
+import { AccountType, Prisma } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../../database/prisma.service';
 import { EntityNotFoundException } from '../../utils/exception/entity-not-found.exception';
@@ -47,6 +47,27 @@ export class UserService {
       ...user,
       stars: Math.round(avg * 10) / 10,
     };
+  }
+
+  getAllShelters() {
+    return this.prisma.user.findMany({
+      where: { accountType: AccountType.SHELTER },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        middleName: true,
+        lastName: true,
+        name: true,
+        accountType: true,
+        shelterType: true,
+        address: true,
+        description: true,
+        donationLink: true,
+        avatarLink: true,
+        shelterComments: true,
+      },
+    });
   }
 
   getUserContacts(userId: string) {
