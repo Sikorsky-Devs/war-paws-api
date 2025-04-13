@@ -24,7 +24,7 @@ export class SaveController {
 
   @Delete(':petId')
   @UseGuards(AuthGuard())
-  deleteSave(@Param() petId: string, @Req() req: Request) {
+  deleteSave(@Param('petId') petId: string, @Req() req: Request) {
     return this.saveService.deleteSavedPet(req['user'].id, petId);
   }
 
