@@ -80,13 +80,14 @@ model Comment {
 }
 
 model Message {
-  id          String   @id @default(uuid())
-  volunteerId String   @map("volunteer_id")
-  volunteer   User     @relation("VolunteerMessages", fields: [volunteerId], references: [id], onDelete: Cascade)
-  shelterId   String   @map("shelter_id")
-  shelter     User     @relation("ShelterMessages", fields: [shelterId], references: [id], onDelete: Cascade)
+  id          String      @id @default(uuid())
+  volunteerId String      @map("volunteer_id")
+  volunteer   User        @relation("VolunteerMessages", fields: [volunteerId], references: [id], onDelete: Cascade)
+  shelterId   String      @map("shelter_id")
+  shelter     User        @relation("ShelterMessages", fields: [shelterId], references: [id], onDelete: Cascade)
+  from        AccountType
   content     String
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
 
   @@map("messages")
 }
