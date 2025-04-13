@@ -37,9 +37,10 @@ export class PostService {
             middleName: true,
             lastName: true,
             name: true,
+            avatarLink: true,
           },
-        }
-      }
+        },
+      },
     });
   }
 }
