@@ -65,8 +65,8 @@ export class PetService {
         type: dto.type,
         heathStatus: dto.healthStatus,
         age: {
-          gte: dto.ageFrom,
-          lte: dto.ageTo,
+          gte: dto.ageFrom ? Number(dto.ageFrom) : undefined,
+          lte: dto.ageTo ? Number(dto.ageTo) : undefined,
         },
       },
       include: {
@@ -91,10 +91,17 @@ export class PetService {
       const res = {
         id: pet.id,
         name: pet.name,
+        shelterId: pet.shelterId,
         shelter: pet.shelter.name,
         age: pet.age,
         address: pet.address,
         imageLink: pet.imageLink,
+        isApproved: pet.isApproved,
+        type: pet.type,
+        breed: pet.breed,
+        description: pet.description,
+        healthStatus: pet.heathStatus,
+        createdAt: pet.createdAt,
       };
 
       if (avg > 4.5) {

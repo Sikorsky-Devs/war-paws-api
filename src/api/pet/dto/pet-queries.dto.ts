@@ -7,4 +7,5 @@ export class PetQueriesDto {
   ageFrom?: number;
   ageTo?: number;
   healthStatus?: HealthStatus;
+  userId?: string;
 }
