@@ -70,6 +70,47 @@ export class UserService {
     });
   }
 
+  async getUserChats(userId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new EntityNotFoundException('User', 'id');
+    }
+
+    const existingUser = {};
+    const uniqueChats = [];
+    const messages = await this.prisma.message.findMany({
+      where:
+        user.accountType === AccountType.SHELTER
+          ? { shelterId: userId }
+          : { volunteerId: userId },
+      include: {
+        volunteer: true,
+        shelter: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    for (const message of messages) {
+      if (
+        existingUser[
+          user.accountType === AccountType.SHELTER
+            ? message.volunteerId
+            : message.shelterId
+        ]
+      ) {
+        continue;
+      }
+      existingUser[
+        user.accountType === AccountType.SHELTER
+          ? message.volunteerId
+          : message.shelterId
+      ] = true;
+      uniqueChats.push(message);
+    }
+    return uniqueChats;
+  }
+
   getUserContacts(userId: string) {
     return this.prisma.contact.findMany({ where: { userId } });
   }
