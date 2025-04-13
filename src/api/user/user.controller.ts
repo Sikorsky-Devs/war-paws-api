@@ -21,6 +21,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get('/shelters')
+  getAllShelters() {
+    return this.userService.getAllShelters();
+  }
+
   @Get('/:id')
   @UseGuards(AuthGuard())
   getById(@Param('id') id: string) {
