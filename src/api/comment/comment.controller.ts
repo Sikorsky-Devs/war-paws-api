@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { Request } from 'express';
+import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Controller('comment')
 export class CommentController {
@@ -20,7 +21,7 @@ export class CommentController {
   createComment(
     @Req() req: Request,
     @Param('shelterId') shelterId: string,
-    @Body() createCommentDto: { start: number; content: string },
+    @Body() createCommentDto: CreateCommentDto,
   ) {
     return this.commentService.createComment(
       req['user'].id,
