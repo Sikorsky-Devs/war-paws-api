@@ -26,8 +26,8 @@ export class UserController {
     return this.userService.getAllShelters();
   }
 
-  @UseGuards(AuthGuard())
   @Get('/chats')
+  @UseGuards(AuthGuard())
   getUserChats(@Req() req: Request) {
     return this.userService.getUserChats(req['user'].id);
   }

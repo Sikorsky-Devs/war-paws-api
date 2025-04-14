@@ -85,9 +85,39 @@ export class UserService {
         user.accountType === AccountType.SHELTER
           ? { shelterId: userId }
           : { volunteerId: userId },
-      include: {
-        volunteer: true,
-        shelter: true,
+      include:
+        user.accountType !== AccountType.SHELTER
+          ? {
+              shelter: {
+                select: {
+                  id: true,
+                  email: true,
+                  accountType: true,
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  avatarLink: true,
+                },
+              },
+            }
+          : {
+              volunteer: {
+                select: {
+                  id: true,
+                  email: true,
+                  accountType: true,
+                  firstName: true,
+                  lastName: true,
+                  middleName: true,
+                  avatarLink: true,
+                },
+              },
+            },
+      omit: {
+        id: true,
+        from: true,
+        content: true,
+        createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -106,7 +136,11 @@ export class UserService {
           ? message.volunteerId
           : message.shelterId
       ] = true;
-      uniqueChats.push(message);
+      uniqueChats.push(
+        message[
+          user.accountType === AccountType.SHELTER ? 'volunteer' : 'shelter'
+        ],
+      );
     }
     return uniqueChats;
   }
