@@ -1,5 +1,4 @@
-
 export class CreateCommentDto {
-  start: number;
+  stars: number;
   content: string;
 }
