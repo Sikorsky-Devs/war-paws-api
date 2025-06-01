@@ -1,40 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AccountType } from '@prisma/client';
+import { MessageRepository } from './message.repository';
+import { MessageWithShelterAndVolunteerEntity } from './entity/message-with-shelter-and-volunteer.entity';
 
 @Injectable()
 export class MessageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly messageRepository: MessageRepository,
+  ) {}
 
-  private include = {
-    include: {
-      shelter: {
-        select: {
-          id: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          name: true,
-          accountType: true,
-          avatarLink: true,
-        },
-      },
-      volunteer: {
-        select: {
-          id: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          name: true,
-          accountType: true,
-          avatarLink: true,
-        },
-      },
-    },
-  };
-
-  async getHistory(senderId: string, receiverId: string) {
-    return this.prisma.message.findMany({
+  async getHistory(
+    senderId: string,
+    receiverId: string,
+  ): Promise<MessageWithShelterAndVolunteerEntity[]> {
+    return this.messageRepository.findMany({
       where: {
         OR: [
           {
@@ -47,12 +28,14 @@ export class MessageService {
           },
         ],
       },
-      ...this.include,
       orderBy: { createdAt: 'asc' },
     });
   }
 
-  async genSocketGroupId(senderId: string, receiverId: string) {
+  async genSocketGroupId(
+    senderId: string,
+    receiverId: string,
+  ): Promise<string> {
     const { accountType } = await this.prisma.user.findFirst({
       where: { id: senderId },
       select: { accountType: true },
@@ -63,21 +46,11 @@ export class MessageService {
     return receiverId + senderId;
   }
 
-  async saveMessage(senderId: string, receiverId: string, content: string) {
-    const sender = await this.prisma.user.findFirst({
-      where: { id: senderId },
-      select: { accountType: true },
-    });
-    return this.prisma.message.create({
-      data: {
-        content,
-        shelterId:
-          sender.accountType === AccountType.SHELTER ? senderId : receiverId,
-        volunteerId:
-          sender.accountType === AccountType.VOLUNTEER ? senderId : receiverId,
-        from: sender.accountType,
-      },
-      ...this.include,
-    });
+  async saveMessage(
+    senderId: string,
+    receiverId: string,
+    content: string,
+  ): Promise<MessageWithShelterAndVolunteerEntity> {
+    return this.messageRepository.create(senderId, receiverId, content);
   }
 }
