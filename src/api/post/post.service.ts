@@ -1,46 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { $Enums } from '@prisma/client';
+import { PostRepository } from './post.repository';
+import { PostEntity } from './entity/post.entity';
+import { CreatePostDto } from './dto/create-post.dto';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly postRepository: PostRepository) {}
 
   createPost(
     userId: string,
-    createPostDto: { title: string; content: string },
-  ) {
-    return this.prisma.post.create({
-      data: {
-        userId,
-        title: createPostDto.title,
-        content: createPostDto.content,
-      },
+    createPostDto: CreatePostDto,
+  ): Promise<PostEntity> {
+    return this.postRepository.create({
+      userId,
+      title: createPostDto.title,
+      content: createPostDto.content,
     });
   }
 
   getPosts(accountType: $Enums.AccountType) {
-    return this.prisma.post.findMany({
-      where: {
-        user: {
-          accountType,
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            middleName: true,
-            lastName: true,
-            name: true,
-            avatarLink: true,
-          },
-        },
-      },
-    });
+    return this.postRepository.getPostsByAccountTypeWithUsers(accountType);
   }
 }
