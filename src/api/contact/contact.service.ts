@@ -1,38 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
-import { PrismaService } from '../../database/prisma.service';
 import { EntityNotFoundException } from '../../utils/exception/entity-not-found.exception';
+import { ContactRepository } from './contact.repository';
+import { Contact } from '@prisma/client';
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly contactRepository: ContactRepository) {}
 
-  create(data: CreateContactDto, userId: string) {
-    return this.prisma.contact.create({
-      data: {
-        ...data,
-        userId,
-      },
-    });
+  create(data: CreateContactDto, userId: string): Promise<Contact> {
+    return this.contactRepository.create({ ...data, userId });
   }
 
-  async update(id: string, data: UpdateContactDto) {
-    const contact = await this.prisma.contact.findFirst({ where: { id } });
+  async update(id: string, data: UpdateContactDto): Promise<Contact> {
+    const contact = await this.contactRepository.findById(id);
     if (!contact) {
       throw new EntityNotFoundException('Contact', 'id');
     }
-    return this.prisma.contact.update({
-      where: { id },
-      data,
-    });
+    return this.contactRepository.updateById(id, data);
   }
 
-  async remove(id: string) {
-    const contact = await this.prisma.contact.findFirst({ where: { id } });
+  async remove(id: string): Promise<Contact> {
+    const contact = await this.contactRepository.findById(id);
     if (!contact) {
       throw new EntityNotFoundException('Contact', 'id');
     }
-    return this.prisma.contact.delete({ where: { id } });
+    return this.contactRepository.deleteById(id);
   }
 }

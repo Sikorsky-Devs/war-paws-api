@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { MailService } from '../../mail/mail.service';
-import { PrismaService } from '../../database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
 import { v4 } from 'uuid';
@@ -11,13 +10,14 @@ import { SignInDto } from './dto/sign-in.dto';
 import { EntityNotFoundException } from '../../utils/exception/entity-not-found.exception';
 import * as bcrypt from 'bcryptjs';
 import { PasswordIsNotValidException } from '../../utils/exception/password-is-not-valid.exception';
+import { AuthRepository } from './auth.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly mailService: MailService,
-    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   private tempUsers = new Map<string, SignUpDto>();
@@ -40,9 +40,9 @@ export class AuthService {
     if (rec) {
       throw new EntityAlreadyExistsException('User', 'email');
     }
-    const existsByEmail = await this.prisma.user.findFirst({
-      where: { email: signUpDto.email },
-    });
+    const existsByEmail = await this.authRepository.findUserByEmail(
+      signUpDto.email,
+    );
     if (existsByEmail) throw new EntityAlreadyExistsException('User', 'email');
     const token = await this.sendVerificationEmail(signUpDto.email);
     this.tempUsers.set(token, signUpDto);
@@ -53,11 +53,9 @@ export class AuthService {
     if (!signUpDto) {
       throw new EmailTokenNotFoundException();
     }
-    const user = await this.prisma.user.create({
-      data: {
-        ...signUpDto,
-        password: await this.hashPassword(signUpDto.password),
-      },
+    const user = await this.authRepository.createUser({
+      ...signUpDto,
+      password: await this.hashPassword(signUpDto.password),
     });
     this.tempUsers.delete(token);
     return this.jwtService.sign({ sub: user.id });
@@ -74,11 +72,7 @@ export class AuthService {
   }
 
   async signIn(signInDto: SignInDto): Promise<string> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        email: signInDto.email,
-      },
-    });
+    const user = await this.authRepository.findUserByEmail(signInDto.email);
     if (!user) {
       throw new EntityNotFoundException('User', 'email');
     }
