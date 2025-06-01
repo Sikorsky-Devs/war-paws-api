@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { MailModule } from '../../mail/mail.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import { AuthRepository } from './auth.repository';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { PrismaService } from '../../database/prisma.service';
       signOptions: { expiresIn: process.env.TTL },
     }),
   ],
-  providers: [AuthService, PrismaService],
+  providers: [AuthService, AuthRepository, PrismaService],
   controllers: [AuthController],
   exports: [AuthService],
 })

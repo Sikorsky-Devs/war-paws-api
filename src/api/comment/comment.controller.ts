@@ -11,27 +11,38 @@ import {
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { Request } from 'express';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentResponse } from './response/comment.response';
+import { CommentWithVolunteerResponse } from './response/comment-with-volunteer.response';
+import { CommentMapper } from './comment.mapper';
 
 @Controller('comment')
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(
+    private readonly commentService: CommentService,
+    private readonly commentMapper: CommentMapper,
+  ) {}
 
   @UseGuards(AuthGuard())
-  @Post(':shelterId')
-  createComment(
+  @Post('/:shelterId')
+  async createComment(
     @Req() req: Request,
     @Param('shelterId') shelterId: string,
     @Body() createCommentDto: CreateCommentDto,
-  ) {
-    return this.commentService.createComment(
-      req['user'].id,
+  ): Promise<CommentResponse> {
+    const volunteerId = req['user'].id;
+    const comment = await this.commentService.createComment(
+      volunteerId,
       shelterId,
       createCommentDto,
     );
+    return this.commentMapper.get(comment);
   }
 
-  @Get(':shelterId')
-  getCommentsByShelter(@Param('shelterId') shelterId: string) {
-    return this.commentService.getCommentsByShelter(shelterId);
+  @Get('/:shelterId')
+  async getCommentsByShelter(
+    @Param('shelterId') shelterId: string,
+  ): Promise<CommentWithVolunteerResponse[]> {
+    const comments = await this.commentService.getCommentsByShelter(shelterId);
+    return this.commentMapper.getWithVolunteer(comments);
   }
 }
