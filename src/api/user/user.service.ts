@@ -8,6 +8,7 @@ import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../../database/prisma.service';
 import { EntityNotFoundException } from '../../utils/exception/entity-not-found.exception';
 import { UserResponse } from './response/user.response';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
@@ -15,6 +16,7 @@ export class UserService {
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async getById(userId: string): Promise<UserResponse> {
@@ -50,71 +52,41 @@ export class UserService {
   }
 
   getAllShelters() {
-    return this.prisma.user.findMany({
+    return this.userRepository.findMany({
       where: { accountType: AccountType.SHELTER },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        name: true,
-        accountType: true,
-        shelterType: true,
-        address: true,
-        description: true,
-        donationLink: true,
-        avatarLink: true,
-        shelterComments: true,
-      },
     });
   }
 
   async getUserChats(userId: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { id: userId },
-    });
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new EntityNotFoundException('User', 'id');
     }
 
+    return user.accountType === AccountType.SHELTER
+      ? this.getShelterChats(userId)
+      : this.getVolunteerChats(userId);
+  }
+
+  private async getShelterChats(userId: string) {
     const existingUser = {};
     const uniqueChats = [];
     const messages = await this.prisma.message.findMany({
-      where:
-        user.accountType === AccountType.SHELTER
-          ? { shelterId: userId }
-          : { volunteerId: userId },
-      include:
-        user.accountType !== AccountType.SHELTER
-          ? {
-              shelter: {
-                select: {
-                  id: true,
-                  email: true,
-                  accountType: true,
-                  name: true,
-                  firstName: true,
-                  lastName: true,
-                  middleName: true,
-                  avatarLink: true,
-                },
-              },
-            }
-          : {
-              volunteer: {
-                select: {
-                  id: true,
-                  email: true,
-                  accountType: true,
-                  name: true,
-                  firstName: true,
-                  lastName: true,
-                  middleName: true,
-                  avatarLink: true,
-                },
-              },
-            },
+      where: { shelterId: userId },
+      include: {
+        volunteer: {
+          select: {
+            id: true,
+            email: true,
+            accountType: true,
+            name: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            avatarLink: true,
+          },
+        },
+      },
       omit: {
         id: true,
         from: true,
@@ -123,27 +95,54 @@ export class UserService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
     for (const message of messages) {
-      if (
-        existingUser[
-          user.accountType === AccountType.SHELTER
-            ? message.volunteerId
-            : message.shelterId
-        ]
-      ) {
+      if (existingUser[message.volunteerId]) {
         continue;
       }
-      existingUser[
-        user.accountType === AccountType.SHELTER
-          ? message.volunteerId
-          : message.shelterId
-      ] = true;
-      uniqueChats.push(
-        message[
-          user.accountType === AccountType.SHELTER ? 'volunteer' : 'shelter'
-        ],
-      );
+      existingUser[message.volunteerId] = true;
+      uniqueChats.push(message.volunteer);
     }
+
+    return uniqueChats;
+  }
+
+  private async getVolunteerChats(userId: string) {
+    const existingUser = {};
+    const uniqueChats = [];
+    const messages = await this.prisma.message.findMany({
+      where: { volunteerId: userId },
+      include: {
+        shelter: {
+          select: {
+            id: true,
+            email: true,
+            accountType: true,
+            name: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            avatarLink: true,
+          },
+        },
+      },
+      omit: {
+        id: true,
+        from: true,
+        content: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    for (const message of messages) {
+      if (existingUser[message.shelterId]) {
+        continue;
+      }
+      existingUser[message.shelterId] = true;
+      uniqueChats.push(message.shelter);
+    }
+
     return uniqueChats;
   }
 
@@ -153,14 +152,11 @@ export class UserService {
 
   async updateAvatar(file: Express.Multer.File, userId: string) {
     const link = this.fileService.uploadFile(file);
-    const user = await this.prisma.user.findFirst({ where: { id: userId } });
+    const user = await this.userRepository.findById(userId);
     if (user.avatarLink) {
       this.fileService.deleteFile(user.avatarLink);
     }
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { avatarLink: link },
-    });
+    await this.userRepository.update(userId, { avatarLink: link });
     return { link };
   }
 
@@ -170,7 +166,7 @@ export class UserService {
   ) {
     const data: Prisma.UserUpdateInput = { ...dto };
     if (newPassword && currentPassword) {
-      const user = await this.prisma.user.findFirst({ where: { id: userId } });
+      const user = await this.userRepository.findById(userId);
       const isPasswordValid = await bcrypt.compare(
         currentPassword,
         user.password,
@@ -180,44 +176,11 @@ export class UserService {
       }
       data.password = await this.authService.hashPassword(newPassword);
     }
-    return this.prisma.user.update({
-      where: { id: userId },
-      data,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        name: true,
-        accountType: true,
-        shelterType: true,
-        address: true,
-        description: true,
-        donationLink: true,
-        avatarLink: true,
-      },
-    });
+    return this.userRepository.update(userId, data);
   }
 
   async deleteById(userId: string) {
-    const user = await this.prisma.user.delete({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        name: true,
-        accountType: true,
-        shelterType: true,
-        address: true,
-        description: true,
-        donationLink: true,
-        avatarLink: true,
-      },
-    });
+    const user = await this.userRepository.deleteById(userId);
     if (user.avatarLink) this.fileService.deleteFile(user.avatarLink);
     return user;
   }
