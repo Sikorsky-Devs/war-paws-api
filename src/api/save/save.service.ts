@@ -1,46 +1,20 @@
-import {Injectable} from "@nestjs/common";
-import {PrismaService} from "../../database/prisma.service";
+import { Injectable } from '@nestjs/common';
+import { SaveWithPetEntity } from './entity/save-with-pet.entity';
+import { SaveRepository } from './save.repository';
 
 @Injectable()
 export class SaveService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly saveRepository: SaveRepository) {}
 
-  savePet(userId: string, petId: string) {
-    return this.prisma.save.create({
-      data: {
-        volunteerId: userId,
-        petId,
-      },
-      include: {
-        pet: true,
-      }
-    })
+  savePet(userId: string, petId: string): Promise<SaveWithPetEntity> {
+    return this.saveRepository.create(userId, petId);
   }
 
-  deleteSavedPet(userId: string, petId: string) {
-    return this.prisma.save.delete({
-      where: {
-        volunteerId_petId: {
-          volunteerId: userId,
-          petId: petId,
-        },
-      },
-      include: {
-        pet: true,
-      }
-    });
+  deleteSavedPet(userId: string, petId: string): Promise<SaveWithPetEntity> {
+    return this.saveRepository.delete(userId, petId);
   }
 
-  getSavedPetsByUser(userId: string) {
-    return this.prisma.save.findMany({
-      where: {
-        volunteerId: userId,
-      },
-      include: {
-        pet: true,
-      }
-    })
+  getSavedPetsByUser(userId: string): Promise<SaveWithPetEntity[]> {
+    return this.saveRepository.findManyByUserId(userId);
   }
 }
