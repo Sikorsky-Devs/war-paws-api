@@ -33,14 +33,18 @@ An API for the War Paws web application.
 - Node mailer
 - SMTP
 
+## Structure
+
+![image](https://github.com/user-attachments/assets/adc78d21-6589-467d-a092-026c0c85f81f)
+
 ## Pattern examples
 
-- Repository: this pattern abstracts the data access layer, providing a centralized interface for querying and persisting domain entities. This allows for easier testing and separation of concerns.
-- Mapper: this pattern transforms data between different representations, such as converting database entities to DTOs (Data Transfer Objects) and vice versa. This ensures that the API layer remains decoupled from the database schema.
-- Factory: this pattern encapsulates the creation logic of objects, and in our case, it dynamically generates a guard class with behavior based on the provided account type.
-- Guard: this pattern provides a way to implement authorization logic, allowing us to restrict access to certain routes based on user roles or permissions.
-- DTO (Data Transfer Object): this pattern defines the structure of data that is sent over the network, ensuring that only the necessary information is exposed to the client. It helps in validating and transforming incoming requests.
-- Decorators: we use decorators to define metadata for classes and methods, such as route handlers, guards, and interceptors. This allows for cleaner and more readable code while providing additional functionality.
+- [Repository](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/contact/contact.repository.ts): this pattern abstracts the data access layer, providing a centralized interface for querying and persisting domain entities. This allows for easier testing and separation of concerns.
+- [Mapper](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/comment/comment.mapper.ts): this pattern transforms data between different representations, such as converting database entities to DTOs (Data Transfer Objects) and vice versa. This ensures that the API layer remains decoupled from the database schema.
+- [Factory](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/auth/guard/auth.guard.ts): this pattern encapsulates the creation logic of objects, and in our case, it dynamically generates a guard class with behavior based on the provided account type.
+- [Guard](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/auth/guard/auth.guard.ts): this pattern provides a way to implement authorization logic, allowing us to restrict access to certain routes based on user roles or permissions.
+- [DTO (Data Transfer Object)](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/auth/dto/sign-in.dto.ts): this pattern defines the structure of data that is sent over the network, ensuring that only the necessary information is exposed to the client. It helps in validating and transforming incoming requests.
+- [Decorators](https://github.com/Sikorsky-Devs/war-paws-api/blob/main/src/api/auth/auth.controller.ts): we use decorators to define metadata for classes and methods, such as route handlers, guards, and interceptors. This allows for cleaner and more readable code while providing additional functionality.
 
 Also, all our services are built with a multi-layered architecture, which separates the business logic from the data access layer, making it easier to maintain and test **(SRP)**
 
