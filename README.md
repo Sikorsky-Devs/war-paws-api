@@ -18,12 +18,12 @@ An API for the War Paws web application.
 ## Tech details
 - Multi-layered architecture with separation of concerns
 - RESTful API design
-- Patter repository for data access
+- Repositories for data access
 - Mappers for data transformation
 - Guards for authorization
 - Global exception filter
 
-## Tech stack
+### Tech stack
 - NestJS & Express
 - PrismaORM
 - PostgreSQL
@@ -32,6 +32,17 @@ An API for the War Paws web application.
 - Docker & Docker Compose
 - Node mailer
 - SMTP
+
+## Pattern examples
+
+- Repository: this pattern abstracts the data access layer, providing a centralized interface for querying and persisting domain entities. This allows for easier testing and separation of concerns.
+- Mapper: this pattern transforms data between different representations, such as converting database entities to DTOs (Data Transfer Objects) and vice versa. This ensures that the API layer remains decoupled from the database schema.
+- Factory: this pattern encapsulates the creation logic of objects, and in our case, it dynamically generates a guard class with behavior based on the provided account type.
+- Guard: this pattern provides a way to implement authorization logic, allowing us to restrict access to certain routes based on user roles or permissions.
+- DTO (Data Transfer Object): this pattern defines the structure of data that is sent over the network, ensuring that only the necessary information is exposed to the client. It helps in validating and transforming incoming requests.
+- Decorators: we use decorators to define metadata for classes and methods, such as route handlers, guards, and interceptors. This allows for cleaner and more readable code while providing additional functionality.
+
+Also, all our services are built with a multi-layered architecture, which separates the business logic from the data access layer, making it easier to maintain and test **(SRP)**
 
 ## WebSocket Integration
 
@@ -71,12 +82,6 @@ $ yarn start:dev
 # production mode
 $ yarn start:prod
 ```
-
-## Swagger
-
-We have Swagger for the project.
-
-![image](./swagger.png)
 
 ## Environment variables
 

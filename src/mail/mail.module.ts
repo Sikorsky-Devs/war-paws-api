@@ -16,7 +16,7 @@ import { MailService } from './mail.service';
         },
       },
       defaults: {
-        from: '"No Reply" <noreply@title.com>',
+        from: '"No Reply" <noreply@warpaws.com>',
       },
       template: {
         dir: join(__dirname, 'templates'),
